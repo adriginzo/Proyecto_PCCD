@@ -1,0 +1,96 @@
+Aquí tienes un ejemplo de funcionamiento con 3 nodos (N=3) para ilustrar cómo se coordinan usando el algoritmo de paso de testigos (token):
+Situación inicial:
+
+    Nodo 1 tiene el token (testigo = 1).
+
+    Nodo 2 y Nodo 3 no tienen token (testigo = 0).
+
+    Todos los vectores están inicializados en 0:
+
+        vector_peticiones = [0, 0, 0]
+
+        vector_atendidas = [0, 0, 0]
+
+Paso 1: Nodo 2 quiere entrar a la SC
+
+    Nodo 2 presiona ENTER para solicitar acceso.
+
+    Como no tiene el token, envía una solicitud (mtype=2) a Nodo 1 y Nodo 3:
+
+        vector_peticiones se actualiza: [0, 1, 0] (Nodo 2 incrementa su propia petición a 1).
+
+    Nodo 1 recibe la solicitud:
+
+        Compara vector_peticiones[1] (1) > vector_atendidas[1] (0) → debe pasar el token.
+
+        Nodo 1 envía el token (mtype=1) a Nodo 2 y pierde el testigo (testigo=0).
+
+    Nodo 2 recibe el token (testigo=1) y entra a la sección crítica (SC).
+
+Paso 2: Nodo 2 sale de la SC y pasa el token
+
+    Nodo 2 presiona ENTER para salir de la SC.
+
+    Actualiza vector_atendidas[1] = 1 (marca su petición como atendida).
+
+    Busca al siguiente nodo con peticiones pendientes:
+
+        Nodo 1: vector_peticiones[0] (0) == vector_atendidas[0] (0) → no necesita token.
+
+        Nodo 3: vector_peticiones[2] (0) == vector_atendidas[2] (0) → no necesita token.
+
+    Como nadie más lo necesita, Nodo 2 conserva el token (sigue testigo=1).
+
+Paso 3: Nodo 3 quiere entrar a la SC
+
+    Nodo 3 presiona ENTER para solicitar acceso.
+
+    Envía una solicitud (mtype=2) a Nodo 1 y Nodo 2:
+
+        vector_peticiones = [0, 1, 1] (Nodo 3 incrementa su petición a 1).
+
+    Nodo 2 recibe la solicitud:
+
+        Está fuera de la SC (dentro=0) y tiene el token (testigo=1).
+
+        Compara vector_peticiones[2] (1) > vector_atendidas[2] (0) → pasa el token.
+
+        Nodo 2 envía el token a Nodo 3 y pierde el testigo (testigo=0).
+
+    Nodo 3 recibe el token (testigo=1) y entra a la SC.
+
+Paso 4: Nodo 1 quiere entrar mientras Nodo 3 está en la SC
+
+    Nodo 1 presiona ENTER para solicitar acceso.
+
+    Envía una solicitud (mtype=2) a Nodo 2 y Nodo 3:
+
+        vector_peticiones = [1, 1, 1] (Nodo 1 incrementa su petición a 1).
+
+    Nodo 3 recibe la solicitud:
+
+        Está dentro de la SC (dentro=1) → no pasa el token (espera a salir).
+
+    Nodo 2 recibe la solicitud:
+
+        No tiene token (testigo=0) → ignora la solicitud.
+
+    Nodo 3 sale de la SC:
+
+        Actualiza vector_atendidas[2] = 1.
+
+        Busca al siguiente nodo con peticiones pendientes:
+
+            Nodo 1: vector_peticiones[0] (1) > vector_atendidas[0] (0) → pasa el token.
+
+        Nodo 3 envía el token a Nodo 1 (testigo=0).
+
+    Nodo 1 recibe el token (testigo=1) y entra a la SC.
+
+Resumen del flujo:
+
+    Nodo 1 (token) → Nodo 2 (solicita) → Nodo 2 recibe token → entra a SC.
+
+    Nodo 3 (solicita) → Nodo 2 (pasa token) → Nodo 3 entra a SC.
+
+    Nodo 1 (solicita) → Nodo 3 (sale y pasa token) → Nodo 1 entra a SC.

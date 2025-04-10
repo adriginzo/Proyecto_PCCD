@@ -1,0 +1,90 @@
+Explicación del Código de Paso de Testigos (Token)
+
+Este código implementa un algoritmo distribuido de exclusión mutua usando el método de paso de testigos (token). Varios nodos (procesos) compiten por acceder a una sección crítica, y solo el que posee el token puede entrar.
+Componentes principales:
+1. Estructuras de datos compartidas:
+
+    vector_peticiones: Lleva el registro de las últimas peticiones de cada nodo.
+
+    vector_atendidas: Lleva el registro de las últimas peticiones atendidas de cada nodo.
+
+    msqid_nodos: Almacena los IDs de las colas de mensajes de los nodos.
+
+    testigo: Variable que indica si este nodo tiene el token (1) o no (0).
+
+    dentro: Indica si el nodo está en la sección crítica (1) o no (0).
+
+2. Semáforos:
+
+    sem_vectores: Protege el acceso a los vectores compartidos.
+
+    sem_vector_atendidas: Protege específicamente el vector de atendidas.
+
+    sem_testigo: Protege el acceso a la variable testigo.
+
+    sem_dentro: Protege el acceso a la variable dentro.
+
+3. Funciones principales:
+a. Hilo Receptor:
+
+    Se ejecuta en paralelo para recibir mensajes de otros nodos.
+
+    Maneja dos tipos de mensajes:
+
+        Tipo 2: Solicitudes de acceso a la sección crítica.
+
+        Tipo 1: Envío del token.
+
+    Cuando recibe una solicitud, actualiza el vector_peticiones.
+
+    Si tiene el token, no está en la SC y la petición no ha sido atendida, envía el token.
+
+b. Main:
+
+    Inicialización:
+
+        Recibe como parámetro el número/id del nodo.
+
+        Intenta obtener el token inicialmente.
+
+        Configura las colas de mensajes para comunicarse con otros nodos.
+
+        Lanza el hilo receptor.
+
+    Bucle principal:
+
+        Espera entrada del usuario para intentar entrar a la SC.
+
+        Si no tiene el token:
+
+            Envía solicitudes a todos los otros nodos.
+
+            Espera a recibir el token.
+
+        Cuando obtiene el token:
+
+            Entra a la sección crítica (simulada con una espera de entrada).
+
+            Al salir, busca el siguiente nodo que necesite el token (usando un índice aleatorio como punto de partida para evitar inanición).
+
+            Envía el token a ese nodo.
+
+Flujo del algoritmo:
+
+    Un nodo que quiere entrar a la SC pero no tiene el token envía solicitudes a todos los demás nodos.
+
+    Cuando un nodo recibe una solicitud mayor que la última que ha atendido, y tiene el token pero no lo está usando, le pasa el token.
+
+    El nodo que recibe el token puede entrar a la SC.
+
+    Al salir de la SC, busca otro nodo que necesite el token y se lo pasa.
+
+Garantías:
+
+    Exclusión mutua: Solo un nodo puede tener el token a la vez.
+
+    Ausencia de inanición: El token se pasa en orden aleatorio rotatorio.
+
+    Justicia: Las solicitudes se atienden en orden de llegada (gracias a los vectores de peticiones y atendidas).
+
+Este es un algoritmo clásico de exclusión mutua distribuida que evita la necesidad de un coordinador centralizad
